@@ -1,5 +1,6 @@
 const express = require("express");
 const redis = require("redis");
+const process = require("process");
 
 const bootstrap = async () => {
   const app = express();
@@ -15,6 +16,8 @@ const bootstrap = async () => {
   await client.set("visits", 0);
 
   app.get("/", async (req, res) => {
+    process.exit(0);
+
     const visits = await client.get("visits");
 
     await client.set("visits", parseInt(visits) + 1);
