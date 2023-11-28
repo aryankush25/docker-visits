@@ -1,18 +1,30 @@
 const express = require("express");
 const redis = require("redis");
 
-const app = express();
-const client = redis.createClient();
+const bootstrap = async () => {
+  const app = express();
+  const client = await redis
+    .createClient({
+      url: "redis://redis-server:6379",
+    })
+    .on("error", (err) => console.log("Redis Client Error", err))
+    .connect();
 
-client.set("visits", 0);
+  console.log("Redis Client Connected");
 
-app.get("/", (req, res) => {
-  client.get("visits", (err, visits) => {
+  await client.set("visits", 0);
+
+  app.get("/", async (req, res) => {
+    const visits = await client.get("visits");
+
+    await client.set("visits", parseInt(visits) + 1);
+
     res.send("Number of visits is " + visits);
-    client.set("visits", parseInt(visits) + 1);
   });
-});
 
-app.listen(3000, () => {
-  console.log("Server is listening on port 3000");
-});
+  app.listen(3000, () => {
+    console.log("Server is listening on port 3000");
+  });
+};
+
+bootstrap();
